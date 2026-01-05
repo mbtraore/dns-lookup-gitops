@@ -6,4 +6,4 @@ patchesStrategicMerge:
   - env-patch.yaml
 images:
   - name: harbor.setokaibas.com/projet-dns/dns-lookup
-    newTag: 20260105-200723-31b61c64 # Sera mis à jour par le CI
+    newTag: 1.0.0 # Sera mis à jour par le CI
