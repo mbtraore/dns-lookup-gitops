@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: dns-lookup-dev
-  namespace: argocd
+  namespace: cicd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
