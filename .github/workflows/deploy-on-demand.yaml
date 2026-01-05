@@ -1,0 +1,80 @@
+name: Déploiement DNS Lookup à la demande
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environnement (dev ou prod)'
+        required: true
+        default: 'dev'
+      domains:
+        description: 'Domaines à vérifier (séparés par virgule)'
+        required: true
+        default: 'google.com,github.com'
+      loop_interval:
+        description: 'Intervalle en secondes (0 = one-shot)'
+        required: false
+        default: '300'
+      image_tag:
+        description: 'Tag de l''image (défaut: timestamp)'
+        required: false
+        default: ''
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Générer tag d'image
+        run: |
+          if [ "${{ inputs.image_tag }}" = "" ]; then
+            echo "IMAGE_TAG=$(date +%Y%m%d-%H%M%S)-${GITHUB_SHA::8}" >> $GITHUB_ENV
+          else
+            echo "IMAGE_TAG=${{ inputs.image_tag }}" >> $GITHUB_ENV
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: harbor.setokaibas.com
+          username: admin      # ex: robot$projet-dns+dnsbot
+          password: 'E4@&yTx£2y90'    # token du robot account
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src
+          push: true
+          tags: |
+            harbor.setokaibas.com/projet-dns/dns-lookup:${{ env.IMAGE_TAG }}
+            harbor.setokaibas.com/projet-dns/dns-lookup:latest
+
+      - name: Installer yq
+        run: |
+          wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O yq
+          chmod +x yq
+          sudo mv yq /usr/local/bin/yq
+
+      - name: Mettre à jour les manifests
+        run: |
+          OVERLAY=manifests/overlays/${{ inputs.environment }}
+
+          # Mise à jour du tag image
+          yq -i ".images[0].newTag = \"${{ env.IMAGE_TAG }}\"" $OVERLAY/kustomization.yaml
+
+          # Mise à jour des variables d'environnement
+          yq -i ".spec.template.spec.containers[0].env[] |= select(.name == \"DOMAINS\").value = \"${{ inputs.domains }}\"" $OVERLAY/env-patch.yaml
+          yq -i ".spec.template.spec.containers[0].env[] |= select(.name == \"LOOP_INTERVAL\").value = \"${{ inputs.loop_interval }}\"" $OVERLAY/env-patch.yaml
+
+      - name: Commit et push les changements
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add manifests/
+          git commit -m "Déploiement ${{ inputs.environment }}: domaines='${{ inputs.domains }}' intervalle=${{ inputs.loop_interval }} image=${{ env.IMAGE_TAG }}"
+          git push origin main
