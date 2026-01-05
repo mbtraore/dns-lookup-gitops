@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dns-lookup
+spec:
+  template:
+    spec:
+      containers:
+      - name: dns-lookup
+        env:
+        - name: DOMAINS
+          value: "placeholder-domains"
+        - name: LOOP_INTERVAL
+          value: "0"

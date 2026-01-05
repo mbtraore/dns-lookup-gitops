@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dns-lookup
+  labels:
+    app: dns-lookup
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dns-lookup
+  template:
+    metadata:
+      labels:
+        app: dns-lookup
+    spec:
+      containers:
+      - name: dns-lookup
+        image: harbor.setokaibas.com/projet-dns/dns-lookup:latest
+        env:
+        - name: DOMAINS
+          value: "google.com"     # Valeur par défaut, sera écrasée
+        - name: LOOP_INTERVAL
+          value: "0"
