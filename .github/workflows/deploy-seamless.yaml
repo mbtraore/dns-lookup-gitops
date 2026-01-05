@@ -56,8 +56,8 @@ jobs:
           context: ./src
           push: true
           tags: |
-            harbor.setokaibas.com/projet-dns/dns-lookup:${{ env.IMAGE_TAG }}
-            harbor.setokaibas.com/projet-dns/dns-lookup:latest
+            harbor.setokaibas.com/project-dns/dns-lookup:${{ env.IMAGE_TAG }}
+            harbor.setokaibas.com/project-dns/dns-lookup:latest
 
       - name: Installer yq
         run: |
