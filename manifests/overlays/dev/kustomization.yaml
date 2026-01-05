@@ -1,9 +1,10 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ../../base
-patchesStrategicMerge:
-  - env-patch.yaml
+  - ../../base     # ← Bonne syntaxe actuelle
+# Warning : patchesStrategicMerge est déprécié → remplace par patches
+patches:
+  - path: env-patch.yaml
 images:
   - name: harbor.setokaibas.com/projet-dns/dns-lookup
-    newTag: 1.0.0 # Sera mis à jour par le CI
+    newTag: 1.0.0   # Sera mis à jour par le workflow
