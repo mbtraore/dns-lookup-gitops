@@ -9,6 +9,6 @@ spec:
         - name: dns-lookup
           env:
             - name: DOMAINS
-              value: "google.com,github.com,seneweb.com,x.com,yahoo.fr"
+              value: "google.com,github.com,seneweb.com,x.com,yahoo.fr,www.tf1.fr"
             - name: LOOP_INTERVAL
               value: "300"
